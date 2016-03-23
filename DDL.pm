@@ -1,7 +1,7 @@
 package Parsers::TargetParser::ILLiad::DDL;
 
 #============================================================#
-# Version: $Id: DDL.pm,v 1.13 2015/05/11 03:55:22 eldada Exp $
+# Version: $Id: DDL.pm,v 1.14 2016/03/21 04:55:30 eldada Exp $
 #============================================================#
 
 # a little bit of the parser logic
@@ -88,7 +88,9 @@ sub getDocumentDelivery
 	
     #set the rfe_dat accordingly to the xml tag name and its value
 	if($ctx_obj->get('rfe_dat') =~ /<(.+?)>(.+?)<\/(.+?)>/){
-		$query{'rfe_dat'} = "$1=$2" if($1 eq $3);  
+		if ($1 eq $3) {
+			$query{'rfe_dat'} = (lc($1) eq "accessionnumber") ? "$2" : "$1=$2";
+		}
 	}
 	
 	$query{'url_ver'}       = $ctx_obj->get('url_ver')       if($ctx_obj->get('url_ver'));
