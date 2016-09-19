@@ -45,8 +45,12 @@ sub getDocumentDelivery
                             patent      => 1
                     ) ; 
 	
+	my $ref = $ENV{HTTP_REFERER};
+
 	$query{'Action'} = 10;
 	$query{'Form'} = 30;
+	
+	$query{'rft.sid'} = substr($ref, index($ref, 'sid'), index($ref, '&'));
 
 	if(($ctx_obj->get('@rft.aulast')) && $ctx_obj->get('@rft.aulast')->[0]){
 		$query{'rft.aulast'}  = $ctx_obj->get('@rft.aulast')->[0];
@@ -78,7 +82,13 @@ sub getDocumentDelivery
 	$query{'rft.eisbn'}     = $ctx_obj->get('rft.eisbn')     if($ctx_obj->get('rft.eisbn'));
 	$query{'rft.eisbn13'}   = $ctx_obj->get('rft.eisbn13')   if($ctx_obj->get('rft.eisbn13'));
 	$query{'rft.genre'}     = $ctx_obj->get('rft.genre')     || '';
-	$query{'rft.date'}      = $ctx_obj->get('rft.date')      if($ctx_obj->get('rft.date'));
+	
+	if($ctx_obj->get('rft.date')){
+		my $y = $ctx_obj->get('rft.date');
+		$query{'rft.date'} = substr($y, 0, 4);
+	}
+	
+	# $query{'rft.date'}      = $ctx_obj->get('rft.date')      if($ctx_obj->get('rft.date'));
 	$query{'rft.date'}      = $ctx_obj->get('rft.year')      if(!$query{'rft.date'} && $ctx_obj->get('rft.year'));
 	$query{'rft.atitle'}    = $ctx_obj->get('rft.atitle')    if($ctx_obj->get('rft.atitle'));
 	$query{'rft.issue'}     = $ctx_obj->get('rft.issue')     if($ctx_obj->get('rft.issue'));
@@ -94,16 +104,15 @@ sub getDocumentDelivery
 	}
 	
 	$query{'url_ver'}       = $ctx_obj->get('url_ver')       if($ctx_obj->get('url_ver'));
-    $query{'linktype'}      = "openurl";
+    	$query{'linktype'}      = "openurl";
 	$query{'rft.aucorp'}    = $ctx_obj->get('rft.aucorp')    if($ctx_obj->get('rft.aucorp'));
-    $query{'rft.place'}     = $ctx_obj->get('rft.place')     if($ctx_obj->get('rft.place'));
-    $query{'rft.pub'}       = $ctx_obj->get('rft.pub')       if($ctx_obj->get('rft.pub'));
+    	$query{'rft.place'}     = $ctx_obj->get('rft.place')     if($ctx_obj->get('rft.place'));
+    	$query{'rft.pub'}       = $ctx_obj->get('rft.pub')       if($ctx_obj->get('rft.pub'));
 	$query{'rft.issn'}      = $ctx_obj->get('rft.issn')      if($ctx_obj->get('rft.issn'));
 	$query{'rft.month'}     = $ctx_obj->get('rft.month')     if($ctx_obj->get('rft.month'));
 	$query{'rft.eissn'}     = $ctx_obj->get('rft.eissn')     if($ctx_obj->get('rft.eissn'));
 	$query{'rft.pmid'}      = $ctx_obj->get('rft.pmid')      if($ctx_obj->get('rft.pmid'));
 	$query{'rft.ED_NUMBER'} = $ctx_obj->get('rft.ED_NUMBER') if($ctx_obj->get('rft.ED_NUMBER'));
-	
 
 	my $type = $ctx_obj->get('rft_val_fmt');
 	$query{'rft_val_fmt'} = ($type =~ /fmt:kev:mtx/) ? $type : "info:ofi/fmt:kev:mtx:$type";
@@ -119,6 +128,9 @@ sub getDocumentDelivery
         if ($openurl_genre && $genre_map{$openurl_genre}){
             $query{'rft.genre'} = $openurl_genre;                
         }
+	elsif ( $query{'rft.atitle'} ){
+		$query{'rft.genre'} = "article";
+	}
         elsif ($ctx_genre && $genre_map{$ctx_genre}){
             $query{'rft.genre'} = $ctx_genre;
         }
@@ -144,7 +156,7 @@ sub getDocumentDelivery
 	elsif($query{'rft.doi'}){
 		$query{'id'} = $query{'rft.doi'};
 	}
-
+	
 
 	if(($query{'rft.genre'} eq "book" && (!$type || $type !~ /dissertation/)) || $query{'rft.genre'} eq "bookitem"){
 		if ($ctx_obj->get('rft.btitle')) { $query{'rft.btitle'} =  $ctx_obj->get('rft.btitle'); }
@@ -169,11 +181,10 @@ sub getDocumentDelivery
 		$query{'rft.title'} = decode_utf8($query{'rft.title'}) if($query{'rft.title'});
 		$query{'rft.btitle'} = decode_utf8($query{'rft.btitle'}) if($query{'rft.btitle'});
 	}
+
 	$uri = URI->new($host);
 	$uri->query_form(%query);
 	return ($uri);
-
-
 }
 1;                                                         
 
