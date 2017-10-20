@@ -1,7 +1,7 @@
 package Parsers::TargetParser::ILLiad::DDL;
 
 #============================================================#
-# Version: $Id: DDL.pm,v 1.14 2016/03/21 04:55:30 eldada Exp $
+# Version: $Id: DDL.pm,v 1.15 2017/09/10 19:31:29 eldada Exp $
 #============================================================#
 
 # a little bit of the parser logic
@@ -114,6 +114,7 @@ sub getDocumentDelivery
 	$query{'rft.pmid'}      = $ctx_obj->get('rft.pmid')      if($ctx_obj->get('rft.pmid'));
 	$query{'rft.ED_NUMBER'} = $ctx_obj->get('rft.ED_NUMBER') if($ctx_obj->get('rft.ED_NUMBER'));
 
+
 	my $type = $ctx_obj->get('rft_val_fmt');
 	$query{'rft_val_fmt'} = ($type =~ /fmt:kev:mtx/) ? $type : "info:ofi/fmt:kev:mtx:$type";
 
@@ -181,10 +182,20 @@ sub getDocumentDelivery
 		$query{'rft.title'} = decode_utf8($query{'rft.title'}) if($query{'rft.title'});
 		$query{'rft.btitle'} = decode_utf8($query{'rft.btitle'}) if($query{'rft.btitle'});
 	}
+	
+	###############################################################
+        #  decode each value in %query to uft8 for chinese characters #
+        ###############################################################
+        foreach my $part (keys %query) {
+                $query{$part} = decode_utf8($query{$part});;
+        }
+        ###############################################################	
 
 	$uri = URI->new($host);
 	$uri->query_form(%query);
 	return ($uri);
+
+
 }
 1;                                                         
 
